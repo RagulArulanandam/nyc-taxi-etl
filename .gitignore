@@ -1,0 +1,39 @@
+# ── Datasets (too large, publicly available from TLC) ─────────────────────
+data/
+
+# ── Python ────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+dist/
+build/
+.Python
+
+# ── Environment / secrets (never commit these) ───────────────────────────
+.env
+*.env
+.env.*
+
+# ── Logs (generated at runtime) ──────────────────────────────────────────
+logs/
+*.log
+
+# ── OS files ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.iml
+
+# ── Airflow (runtime files, not source) ──────────────────────────────────
+airflow/logs/
+airflow/plugins/
+
+# ── Power BI (binary, not diffable) ──────────────────────────────────────
+*.pbix
