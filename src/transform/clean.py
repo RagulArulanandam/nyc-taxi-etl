@@ -1,5 +1,9 @@
 import polars as pl
 from pathlib import Path
+from src.extract.logger import setup_logger
+
+log = setup_logger(__name__)
+
 
 
 def transform_layer(path: Path):
@@ -8,6 +12,7 @@ def transform_layer(path: Path):
     """
 
     df = pl.read_parquet(path)
+    log.info("File Path Read Successfully and Traforming Layer.")
 
     df = (
         df
@@ -17,7 +22,7 @@ def transform_layer(path: Path):
             pl.col("tpep_dropoff_datetime").alias("dropoff_at"),
             pl.col("passenger_count").cast(pl.Int32),
             pl.col("trip_distance").cast(pl.Float32),
-            pl.col("far_amount").cast(pl.Float32),
+            pl.col("fare_amount").cast(pl.Float32),
             pl.col("total_amount").cast(pl.Float32),
             ])
         .with_columns([
@@ -38,5 +43,7 @@ def transform_layer(path: Path):
             "pickup_at", "dropoff_at", "pickup_hour", "pickup_weekday", "trip_duration_sec", "trip_distance", "passenger_count", "fare_amount", "total_amount", "payment_type", "PULocationID", "DOLocationID",])
 
     )
+
+    log.info("Transofrming Layer Succesfully completed")
 
     return df

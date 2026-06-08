@@ -16,6 +16,7 @@ MONTHS = list(range(1, 13))
 RAW_DIR  = Path("data/raw/yellow_taxi")
 LOG_DIR  = Path("logs")
 LOG_FILE = LOG_DIR / "download.log"
+PROCESSED_DIR = Path("data/processed/yellow_taxi")
 
 
 

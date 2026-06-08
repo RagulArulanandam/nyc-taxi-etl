@@ -10,10 +10,11 @@ Run directly:
 Or import and call run() from an Airflow DAG or another script.
 """
 
-from src.extract.config import YEARS, MONTHS
+from src.extract.config import *
 from src.extract.logger import setup_logger
 from src.extract.helper import build_url, build_local_path, is_future, validate_parquet, file_md5
 from src.extract.downloader import download_file
+from src.transform.transformLayer import *
 
 log = setup_logger(__name__)
 
@@ -75,5 +76,7 @@ def run(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
     return summary
 
 
+
 if __name__ == "__main__":
-    run()
+    run()    # Automated download the NYC Yellow Taxi Trips
+    transform_all()  # Cleaning the data (Rows and Columns)
