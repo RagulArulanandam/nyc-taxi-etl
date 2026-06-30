@@ -14,12 +14,12 @@ from src.extract.config import *
 from src.extract.logger import setup_logger
 from src.extract.helper import build_url, build_local_path, is_future, validate_parquet, file_md5
 from src.extract.downloader import download_file
-from src.transform.transformLayer import *
+from src.transform.transform import *
 
 log = setup_logger(__name__)
 
 
-def run(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
+def run_extract(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
     """
     Download Yellow Taxi Parquet files for all (year, month) combinations.
 
@@ -77,6 +77,8 @@ def run(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
 
 
 
+
+
 if __name__ == "__main__":
-    run()    # Automated download the NYC Yellow Taxi Trips
-    transform_all()  # Cleaning the data (Rows and Columns)
+    run_extract()    # Automated download the NYC Yellow Taxi Trips
+

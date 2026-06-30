@@ -14,7 +14,7 @@ log = setup_logger(__name__)
 
 
 
-def transform_all(years: list[int] = YEARS):
+def run_transform(years: list[int] = YEARS):
     """
     Run transform_layer() on every raw parquet file that hasn't been processed yet.
     Reads from data/raw/yellow_taxi/  →  writes to data/processed/yellow_taxi/

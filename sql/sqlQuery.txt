@@ -1,0 +1,51 @@
+#View-1 Hourly Demand
+
+
+
+CREATE MATERIALIZED VIEW mv_hourly_demand AS
+SELECT
+    pickup_hour,
+    pickup_weekday,
+    COUNT(*) AS trip_count,
+    ROUND(AVG(trip_distance)::numeric, 2) AS avg_distance,
+    ROUND(AVG(fare_amount)::numeric, 2) AS avg_fare
+FROM yellow_trips
+GROUP BY pickup_hour, pickup_weekday
+ORDER BY pickup_weekday, pickup_hour;
+
+
+
+#View 2 — Top pickup zones
+CREATE MATERIALIZED VIEW mv_top_zones AS
+SELECT
+    pu_location_id,
+    COUNT(*) AS pickups,
+    ROUND(AVG(total_amount)::numeric, 2) AS avg_revenue,
+    ROUND(SUM(total_amount)::numeric, 2) AS total_revenue
+FROM yellow_trips
+GROUP BY pu_location_id
+ORDER BY pickups DESC;
+
+
+#View 3 — Monthly trend
+CREATE MATERIALIZED VIEW mv_monthly_trend AS
+SELECT
+    pickup_month,
+    COUNT(*) AS trip_count,
+    ROUND(AVG(trip_duration_sec) / 60.0, 1) AS avg_duration_min,
+    ROUND(SUM(total_amount)::numeric, 2) AS total_revenue
+FROM yellow_trips
+GROUP BY pickup_month
+ORDER BY pickup_month;
+
+
+CREATE MATERIALIZED VIEW mv_monthly_trend AS
+SELECT
+    EXTRACT(YEAR FROM pickup_at)::int  AS trip_year,
+    EXTRACT(MONTH FROM pickup_at)::int AS trip_month,
+    COUNT(*) AS trip_count,
+    ROUND(AVG(trip_duration_sec) / 60.0, 1) AS avg_duration_min,
+    ROUND(SUM(total_amount)::numeric, 2) AS total_revenue
+FROM yellow_trips
+GROUP BY trip_year, trip_month
+ORDER BY trip_year, trip_month;

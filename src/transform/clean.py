@@ -16,10 +16,14 @@ def transform_layer(path: Path):
 
     df = (
         df
-        .drop_nulls(subset=["tpep_pickup_datetime", "tpep_dropoff_datetime"])
+        .drop_nulls(subset=["tpep_pickup_datetime", 
+                            "tpep_dropoff_datetime",
+                            "passenger_count"])
         .with_columns([
             pl.col("tpep_pickup_datetime").alias("pickup_at"),
             pl.col("tpep_dropoff_datetime").alias("dropoff_at"),
+            pl.col("PULocationID").alias("pu_location_id"),      
+            pl.col("DOLocationID").alias("do_location_id"), 
             pl.col("passenger_count").cast(pl.Int32),
             pl.col("trip_distance").cast(pl.Float32),
             pl.col("fare_amount").cast(pl.Float32),
@@ -40,7 +44,7 @@ def transform_layer(path: Path):
         )
 
         .select([
-            "pickup_at", "dropoff_at", "pickup_hour", "pickup_weekday", "trip_duration_sec", "trip_distance", "passenger_count", "fare_amount", "total_amount", "payment_type", "PULocationID", "DOLocationID",])
+            "pickup_at", "dropoff_at", "pickup_hour", "pickup_weekday", "trip_duration_sec", "trip_distance", "passenger_count", "fare_amount", "total_amount", "payment_type", "pu_location_id", "do_location_id"])
 
     )
 
