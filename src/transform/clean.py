@@ -64,8 +64,8 @@ OUTPUT_COLUMNS = [
     "payment_type",
     "VendorID",
     "RatecodeID",
-    "PULocationID",
-    "DOLocationID",
+    "pu_location_id",
+    "do_location_id",
 ]
 
 
@@ -104,6 +104,8 @@ def _normalise(df: pl.DataFrame) -> pl.DataFrame:
             pl.col("airport_fee").cast(pl.Float32),
             pl.col("total_amount").cast(pl.Float32),
             pl.col("payment_type").cast(pl.Int32),
+            pl.col("PULocationID").alias("pu_location_id"),
+            pl.col("DOLocationID").alias("do_location_id"),
             pl.col("VendorID").cast(pl.Int32),
             pl.col("RatecodeID").cast(pl.Int32),
         )
@@ -154,10 +156,9 @@ def clean_trips(df: pl.DataFrame, year: int, month: int) -> tuple[pl.DataFrame, 
             (pl.col("total_amount") > 0) & (pl.col("total_amount") <= MAX_TOTAL_AMOUNT),
         ),
         (
-            # Missing passenger counts are kept (many valid trips lack one); 0 or >6 is bad.
+            # Null counts are dropped (the warehouse expects a value), as are 0 and > 6.
             "bad_passenger_count",
-            pl.col("passenger_count").is_null()
-            | pl.col("passenger_count").is_between(1, MAX_PASSENGERS),
+            pl.col("passenger_count").is_between(1, MAX_PASSENGERS),
         ),
     ]
 

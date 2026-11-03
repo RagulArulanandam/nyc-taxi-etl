@@ -1,13 +1,13 @@
 """
-src/extract/main.py
+src/extract/extract.py
 
 Entry point for the extraction step.
 Orchestrates the loop — all logic lives in the imported modules.
 
 Run directly:
-    python -m src.extract.main
+    python -m src.extract.extract
 
-Or import and call run() from an Airflow DAG or src/pipeline.py.
+Or import and call run_extract() from an Airflow DAG or src/main.py.
 """
 
 from src.extract.config import MONTHS, YEARS
@@ -24,7 +24,7 @@ from src.extract.logger import setup_logger
 log = setup_logger(__name__)
 
 
-def run(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
+def run_extract(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
     """
     Download Yellow Taxi Parquet files for all (year, month) combinations.
 
@@ -83,4 +83,4 @@ def run(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
 
 
 if __name__ == "__main__":
-    run()
+    run_extract()

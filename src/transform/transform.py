@@ -1,11 +1,11 @@
 """
-src/transform/main.py
+src/transform/transform.py
 
 Entry point for the transform step: data/raw -> data/processed.
 
 Run directly:
-    python -m src.transform.main            # only files not yet processed
-    python -m src.transform.main --force    # reprocess everything (after rule changes)
+    python -m src.transform.transform            # only files not yet processed
+    python -m src.transform.transform --force    # reprocess everything (after rule changes)
 """
 
 import argparse
@@ -17,7 +17,7 @@ from src.transform.clean import period_from_filename, transform_layer
 log = setup_logger(__name__)
 
 
-def transform_all(years: list[int] | None = None, force: bool = False) -> dict:
+def run_transform(years: list[int] | None = None, force: bool = False) -> dict:
     """
     Run transform_layer() on every raw parquet file for the given years.
 
@@ -72,5 +72,5 @@ if __name__ == "__main__":
     parser.add_argument("--force", action="store_true", help="reprocess files that already exist")
     parser.add_argument("--years", type=int, nargs="+", help="limit to these years")
     args = parser.parse_args()
-    result = transform_all(years=args.years, force=args.force)
+    result = run_transform(years=args.years, force=args.force)
     raise SystemExit(1 if result["failed"] else 0)

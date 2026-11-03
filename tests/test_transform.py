@@ -3,8 +3,8 @@ from datetime import datetime
 import polars as pl
 import pytest
 
-from src.transform import main as transform_main
-from src.transform.clean import OUTPUT_COLUMNS, clean_trips, period_from_filename
+from src.transform import transform as transform_main
+from src.transform.clean import OUTPUT_COLUMNS, clean_trips, period_from_filename, transform_layer
 
 
 def clean(make_trips, rows):
@@ -47,10 +47,10 @@ def test_bad_rows_are_dropped_and_counted(make_trips, override, rule):
     assert stats["rows_in"] == 2 and stats["rows_out"] == 1
 
 
-def test_missing_passenger_count_is_kept(make_trips):
-    df, _ = clean(make_trips, [{"passenger_count": None}])
+def test_missing_passenger_count_is_dropped(make_trips):
+    df, stats = clean(make_trips, [{"passenger_count": None}, {}])
     assert df.height == 1
-    assert df["passenger_count"][0] is None
+    assert stats["dropped_bad_passenger_count"] == 1
 
 
 def test_airport_fee_is_renamed_and_missing_optionals_are_null(make_trips):
@@ -83,12 +83,12 @@ def test_transform_all_writes_skips_and_forces(make_trips, tmp_path, monkeypatch
     raw, out = _setup_dirs(monkeypatch, tmp_path)
     make_trips([{}, {"fare_amount": -1.0}]).write_parquet(raw / "yellow_tripdata_2024-01.parquet")
 
-    assert transform_main.transform_all([2024]) == {"success": 1, "skipped": 0, "failed": 0}
+    assert transform_main.run_transform([2024]) == {"success": 1, "skipped": 0, "failed": 0}
     assert pl.read_parquet(out / "yellow_tripdata_2024-01.parquet").height == 1
     assert not list(out.glob("*.tmp"))
 
-    assert transform_main.transform_all([2024])["skipped"] == 1
-    assert transform_main.transform_all([2024], force=True)["success"] == 1
+    assert transform_main.run_transform([2024])["skipped"] == 1
+    assert transform_main.run_transform([2024], force=True)["success"] == 1
 
 
 def test_transform_all_filters_years_and_survives_bad_file(make_trips, tmp_path, monkeypatch):
@@ -97,7 +97,47 @@ def test_transform_all_filters_years_and_survives_bad_file(make_trips, tmp_path,
     make_trips([{}]).write_parquet(raw / "yellow_tripdata_2023-01.parquet")
     (raw / "yellow_tripdata_2024-02.parquet").write_bytes(b"garbage")
 
-    summary = transform_main.transform_all([2024])
+    summary = transform_main.run_transform([2024])
     assert summary == {"success": 1, "skipped": 0, "failed": 1}
     assert [p.name for p in out.glob("*.parquet")] == ["yellow_tripdata_2024-01.parquet"]
     assert not list(out.glob("*.tmp"))
+
+
+def _fake_raw_file(tmp_path):
+    """Small raw file mirroring the real TLC columns, with deliberately bad rows."""
+    df = pl.DataFrame({
+        "tpep_pickup_datetime": [
+            datetime(2023, 1, 1, 8, 0, 0),  # good
+            datetime(2023, 1, 1, 9, 0, 0),  # good
+            datetime(2023, 1, 1, 10, 0, 0),  # bad: zero distance
+            datetime(2023, 1, 1, 11, 0, 0),  # bad: trip too short
+            None,  # bad: null pickup time
+        ],
+        "tpep_dropoff_datetime": [
+            datetime(2023, 1, 1, 8, 15, 0),
+            datetime(2023, 1, 1, 9, 20, 0),
+            datetime(2023, 1, 1, 10, 10, 0),
+            datetime(2023, 1, 1, 11, 0, 30),
+            datetime(2023, 1, 1, 12, 0, 0),
+        ],
+        "passenger_count": [1, 2, 1, 1, 1],
+        "trip_distance": [2.5, 5.0, 0.0, 1.0, 3.0],
+        "fare_amount": [12.0, 20.0, 8.0, 5.0, 15.0],
+        "total_amount": [15.0, 24.0, 10.0, 6.0, 18.0],
+        "payment_type": [1, 1, 2, 1, 1],
+        "PULocationID": [100, 150, 200, 75, 50],
+        "DOLocationID": [101, 151, 201, 76, 51],
+    })
+    path = tmp_path / "yellow_tripdata_2023-01.parquet"
+    df.write_parquet(path)
+    return path
+
+
+def test_transform_layer_on_file_keeps_only_valid_rows(tmp_path):
+    result, stats = transform_layer(_fake_raw_file(tmp_path))
+    assert result.height == 2
+    assert stats["rows_in"] == 5 and stats["rows_out"] == 2
+    assert (result["trip_distance"] > 0).all()
+    assert (result["trip_duration_sec"] > 60).all()
+    assert result["pickup_at"].null_count() == 0
+    assert set(result.columns) == set(OUTPUT_COLUMNS)

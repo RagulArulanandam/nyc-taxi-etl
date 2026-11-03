@@ -55,3 +55,7 @@ def test_file_md5(tmp_path):
     f = tmp_path / "a.bin"
     f.write_bytes(b"hello")
     assert helpers.file_md5(f) == "5d41402abc4b2a76b9719d911017c592"
+
+
+def test_build_url_handles_december():
+    assert helpers.build_url(2023, 12) == f"{BASE_URL}/yellow_tripdata_2023-12.parquet"

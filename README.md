@@ -43,13 +43,13 @@ nyc-taxi-etl/
 │   │   ├── logger.py             # Rotating file + console logger
 │   │   ├── helpers.py            # Pure utility functions
 │   │   ├── downloader.py         # Stream-download a single file
-│   │   └── main.py               # Orchestration entry point
+│   │   └── extract.py            # Orchestration entry point
 │   │
 │   ├── transform/
 │   │   ├── clean.py              # Polars cleaning + feature engineering
-│   │   └── main.py               # Transform every raw file (--force to redo)
+│   │   └── transform.py          # Transform every raw file (--force to redo)
 │   │
-│   ├── pipeline.py               # Runs extract then transform
+│   ├── main.py                   # Runs extract, transform, load
 │   │
 │   └── load/
 │       └── load_postgres.py      # Bulk COPY into PostgreSQL
@@ -145,19 +145,19 @@ copy .env.example .env
 ### 4. Download the dataset
 
 ```bash
-python -m src.extract.main
+python -m src.extract.extract
 # Downloads 2023 and 2024 Yellow Taxi parquet files into data/raw/
 ```
 
 ### 5. Transform
 
 ```bash
-python -m src.transform.main            # add --force to reprocess existing files
+python -m src.transform.transform       # add --force to reprocess existing files
 ```
 
-Or run steps 4 and 5 together with `python -m src.pipeline`.
+Or run extract, transform and load together with `python -m src.main`.
 
-The transform drops invalid rows (pickup outside the file's month, trips under 1 minute or over 6 hours, distance/fare/total outside sane limits, passenger count outside 1-6) and logs how many rows each rule removed. Limits live in `src/extract/config.py`.
+The transform drops invalid rows (pickup outside the file's month, trips under 1 minute or over 6 hours, distance/fare/total outside sane limits, missing or out-of-range passenger count) and logs how many rows each rule removed. Limits live in `src/extract/config.py`.
 
 ### 6. Load to PostgreSQL
 
