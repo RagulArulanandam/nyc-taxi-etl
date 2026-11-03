@@ -7,14 +7,19 @@ Orchestrates the loop — all logic lives in the imported modules.
 Run directly:
     python -m src.extract.main
 
-Or import and call run() from an Airflow DAG or another script.
+Or import and call run() from an Airflow DAG or src/pipeline.py.
 """
 
-from src.extract.config import *
-from src.extract.logger import setup_logger
-from src.extract.helper import build_url, build_local_path, is_future, validate_parquet, file_md5
+from src.extract.config import MONTHS, YEARS
 from src.extract.downloader import download_file
-from src.transform.transformLayer import *
+from src.extract.helpers import (
+    build_local_path,
+    build_url,
+    file_md5,
+    is_future,
+    validate_parquet,
+)
+from src.extract.logger import setup_logger
 
 log = setup_logger(__name__)
 
@@ -78,5 +83,4 @@ def run(years: list[int] = YEARS, months: list[int] = MONTHS) -> dict:
 
 
 if __name__ == "__main__":
-    run()    # Automated download the NYC Yellow Taxi Trips
-    transform_all()  # Cleaning the data (Rows and Columns)
+    run()

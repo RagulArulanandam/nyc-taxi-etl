@@ -46,7 +46,10 @@ nyc-taxi-etl/
 │   │   └── main.py               # Orchestration entry point
 │   │
 │   ├── transform/
-│   │   └── clean.py              # Polars cleaning + feature engineering
+│   │   ├── clean.py              # Polars cleaning + feature engineering
+│   │   └── main.py               # Transform every raw file (--force to redo)
+│   │
+│   ├── pipeline.py               # Runs extract then transform
 │   │
 │   └── load/
 │       └── load_postgres.py      # Bulk COPY into PostgreSQL
@@ -120,7 +123,7 @@ nyc-taxi-etl/
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/your-username/nyc-taxi-etl.git
+git clone https://github.com/RagulArulanandam/nyc-taxi-etl.git
 cd nyc-taxi-etl
 ```
 
@@ -129,7 +132,7 @@ cd nyc-taxi-etl
 ```bash
 python -m venv .venv
 .venv\Scripts\activate        # Windows
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### 3. Configure environment
@@ -149,8 +152,12 @@ python -m src.extract.main
 ### 5. Transform
 
 ```bash
-python -m src.transform.clean
+python -m src.transform.main            # add --force to reprocess existing files
 ```
+
+Or run steps 4 and 5 together with `python -m src.pipeline`.
+
+The transform drops invalid rows (pickup outside the file's month, trips under 1 minute or over 6 hours, distance/fare/total outside sane limits, passenger count outside 1-6) and logs how many rows each rule removed. Limits live in `src/extract/config.py`.
 
 ### 6. Load to PostgreSQL
 
@@ -169,7 +176,8 @@ docker-compose up -d
 ## Running tests
 
 ```bash
-pytest tests/ -v
+pytest -v
+ruff check .
 ```
 
 ---
@@ -217,13 +225,13 @@ pytest tests/ -v
 | Step | Status |
 |---|---|
 | Automated extraction | Complete |
-| Polars transformations | In progress |
+| Polars transformations | Complete |
 | PostgreSQL loading | Pending |
 | Analytics tables | Pending |
 | Power BI dashboard | Pending |
 | Airflow scheduling | Pending |
 | Docker deployment | Pending |
-| GitHub Actions CI | Pending |
+| GitHub Actions CI | In progress (lint + tests; Docker/Airflow jobs later) |
 
 ---
 

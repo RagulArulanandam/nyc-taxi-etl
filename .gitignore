@@ -37,3 +37,5 @@ airflow/plugins/
 
 # ── Power BI (binary, not diffable) ──────────────────────────────────────
 *.pbix
+# Keep the template
+!.env.example

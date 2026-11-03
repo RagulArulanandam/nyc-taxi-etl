@@ -6,10 +6,11 @@ All decisions (which files, skip logic, validation) live in main.py.
 """
 
 
-import requests
 from pathlib import Path
 
-from src.extract.config import *
+import requests
+
+from src.extract.config import CHUNK_SIZE, TIMEOUT_SEC
 from src.extract.logger import setup_logger
 
 log = setup_logger(__name__)
@@ -50,5 +51,6 @@ def download_file(url: str, dest: Path) -> bool:
     
     except OSError as exc:
         log.error("File write error: %s", exc)
+        dest.unlink(missing_ok=True)
         return False
 
